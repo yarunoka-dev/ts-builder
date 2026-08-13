@@ -273,6 +273,16 @@ export function applyOp(draft: DraftDocument, op: BuilderOp, alloc: IdAllocator)
           time: { kind: 'sequence', every: { count: op.count, unit: op.unit } },
         };
       });
+
+    default: {
+      // TypeScript proves the cases exhaustive, but an op arriving from
+      // JavaScript or rehydrated from storage can carry any type tag —
+      // falling through to undefined would corrupt the store far from
+      // the cause.
+      const unknown: never = op;
+
+      throw new Error(`Unknown builder op: ${String((unknown as { type?: unknown }).type)}`);
+    }
   }
 }
 

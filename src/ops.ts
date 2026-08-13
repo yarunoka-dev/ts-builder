@@ -13,9 +13,11 @@ import type {
  * The closed set of editing operations. An op writes the draft and
  * nothing else — no validation, no refusal: the draft accepts what was
  * typed, validity is derived afterwards (errors / optionsAt), and
- * "don't offer that" is the UI's move, informed by optionsAt. The one
- * exception is addressing: an op aimed at an id that does not exist is
- * a programming error in the caller and throws.
+ * "don't offer that" is the UI's move, informed by optionsAt. Two
+ * classes of caller bug throw instead of writing: addressing an id
+ * that does not exist, and aiming a form-specific op at another form
+ * (a date-list op at a position not in list mode, a times / grid /
+ * sequence op at another time form).
  *
  * Granularity: lists whose elements carry ids get element-level ops
  * (add / set / remove); small sum-typed values (an atom, shift, if,

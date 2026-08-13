@@ -513,4 +513,15 @@ describe('schedule ops', () => {
       /nope/,
     );
   });
+
+  it('throws on an op the union does not know', () => {
+    // Reachable from JavaScript callers and ops rehydrated from
+    // storage — the type system cannot stand in for this check.
+    const { run } = editor();
+
+    assert.throws(
+      () => run({ type: 'document/set-flavor', value: 'x' } as unknown as BuilderOp),
+      /document\/set-flavor/,
+    );
+  });
 });
