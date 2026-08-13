@@ -1,0 +1,28 @@
+# Release notes list changes that can reach users. `internal` marks PRs that
+# touch nothing shipped (CI, tests, dev tooling, repo meta) — judged by what
+# was touched, not by the author's impact prediction. Unlike the
+# zero-dependency @yarunoka/core, Renovate is not excluded by author here: a
+# runtime constraint change (the @yarunoka/core peer range) alters what
+# consumers can install, so dependency PRs are told apart by label instead
+# (Renovate labels runtime updates `dependencies` and dev-tooling updates
+# `internal` — see renovate.json).
+changelog:
+  exclude:
+    labels:
+      - internal
+  categories:
+    - title: Breaking Changes
+      labels:
+        - breaking
+    - title: Enhancements
+      labels:
+        - enhancement
+    - title: Bug Fixes
+      labels:
+        - bug
+    - title: Dependencies
+      labels:
+        - dependencies
+    - title: Other Changes
+      labels:
+        - "*"
