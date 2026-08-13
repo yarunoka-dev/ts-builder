@@ -8,6 +8,7 @@ import { type OptionContext, type Options, optionsAt } from './options.ts';
 import { type PreviewOccurrence, type PreviewRequest, preview } from './preview.ts';
 import { type ToYrnkResult, toYrnk } from './to-yrnk.ts';
 
+/** What createYrnkBuilder accepts: the starting document and the host's resolver bindings. */
 export type YrnkBuilderOptions = {
   /** The document to start editing; an empty new draft when omitted */
   readonly initial?: YrnkDocument;
@@ -15,6 +16,11 @@ export type YrnkBuilderOptions = {
   readonly resolvers?: Readonly<Record<string, YrnkResolver>>;
 };
 
+/**
+ * What preview() answers: the occurrences and whether the horizon cut
+ * a "next N" search short, or — when the draft cannot export — the
+ * same problems errors() reports.
+ */
 export type PreviewResult =
   | {
       readonly ok: true;
@@ -24,6 +30,11 @@ export type PreviewResult =
     }
   | { readonly ok: false; readonly problems: readonly DraftProblem[] };
 
+/**
+ * The store's handle: the external-store trio (getState / subscribe /
+ * dispatch) plus the derived values an editor reads — validation,
+ * options, the strict document, and upcoming occurrences.
+ */
 export type YrnkBuilder = {
   /** The current draft — an immutable snapshot */
   getState(): DraftDocument;
@@ -38,6 +49,10 @@ export type YrnkBuilder = {
   preview(request: PreviewRequest): PreviewResult;
 };
 
+// One shared empty answer keeps errors() identity-stable for a clean
+// draft: subscribers comparing snapshots see no phantom change.
+const NO_PROBLEMS: readonly DraftProblem[] = [];
+
 /**
  * The store — the one stateful object of this package. One draft, one
  * "something changed" signal: finer subscription granularity is a
@@ -50,8 +65,6 @@ export type YrnkBuilder = {
  * no field changed: the derived values change, and identity is the
  * signal subscribers watch.
  */
-const NO_PROBLEMS: readonly DraftProblem[] = [];
-
 export function createYrnkBuilder(options?: YrnkBuilderOptions): YrnkBuilder {
   let alloc: IdAllocator = createIdAllocator();
   let draft: DraftDocument =
