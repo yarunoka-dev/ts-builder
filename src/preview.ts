@@ -6,7 +6,10 @@ export type PreviewRequest =
   | {
       /** How many upcoming occurrences to answer */
       readonly next: number;
-      /** The instant to count from; the current instant when omitted */
+      /**
+       * The instant the answered occurrences lie strictly after; the
+       * current instant when omitted
+       */
       readonly after?: YrnkInstant;
       /** How far the search may reach; ten years when omitted */
       readonly horizon?: Temporal.Duration;
@@ -60,8 +63,15 @@ export function preview(
     return { occurrences: [], exhausted: false };
   }
 
-  const after = zonedOf(request.after ?? Temporal.Now.instant(), document.timezone);
-  const limit = after.add(request.horizon ?? DEFAULT_HORIZON);
+  // Scheduled points are whole seconds, so "strictly after" is the
+  // range starting at floor(after) + 1 — the same reading core's
+  // period judgment gives its after. An all-day occurrence still
+  // answers while its day overlaps the searched range: a day is due
+  // for as long as it lasts.
+  const start = zonedOf(request.after ?? Temporal.Now.instant(), document.timezone)
+    .round({ smallestUnit: 'second', roundingMode: 'floor' })
+    .add({ seconds: 1 });
+  const limit = start.add(request.horizon ?? DEFAULT_HORIZON);
 
   // Widen by doubling: a dense schedule answers within the first
   // windows and never reaches far — which also keeps far-out resolver
@@ -69,9 +79,9 @@ export function preview(
   let days = 32;
 
   for (;;) {
-    const through = after.add({ days });
+    const through = start.add({ days });
     const cut = Temporal.ZonedDateTime.compare(through, limit) >= 0;
-    const found = collect(document, scheduleIds, after, cut ? limit : through);
+    const found = collect(document, scheduleIds, start, cut ? limit : through);
 
     if (found.length >= request.next) {
       return { occurrences: found.slice(0, request.next), exhausted: false };

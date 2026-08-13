@@ -118,6 +118,34 @@ describe('preview next', () => {
     assert.equal(result.exhausted, true);
   });
 
+  it('excludes an occurrence exactly at after, as the period judgment reads after', () => {
+    const document = parsed([{ days: [25], times: ['09:00'] }]);
+    const result = preview(document, ['s1'], {
+      next: 1,
+      after: '2026-01-25T09:00:00+09:00',
+    });
+
+    assert.deepEqual(
+      result.occurrences.map((entry) => entry.occurrence.toString()),
+      ['2026-02-25T09:00:00+09:00[Asia/Tokyo]'],
+    );
+  });
+
+  it('keeps the current day of an all-day schedule in the answer', () => {
+    // A day is due for as long as it lasts: asked mid-Monday, the
+    // Monday itself is still upcoming.
+    const document = parsed([{ days: ['mon'], allday: true }]);
+    const result = preview(document, ['s1'], {
+      next: 1,
+      after: '2026-01-05T12:00:00+09:00',
+    });
+
+    assert.deepEqual(
+      result.occurrences.map((entry) => entry.occurrence.toString()),
+      ['2026-01-05'],
+    );
+  });
+
   it('answers nothing for a non-positive count', () => {
     const document = parsed([{ days: [25], times: ['09:00'] }]);
     const result = preview(document, ['s1'], { next: 0, after: AFTER });
