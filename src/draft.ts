@@ -21,9 +21,11 @@ export type DraftEntry<T> = { readonly id: DraftId; readonly value: T };
  *   the timezone, an annotation) holds whatever string was typed.
  *   Validation is derived at read time; the draft never stores its own
  *   error state.
+ *
  * - A closed-set leaf holds its value or null (not chosen yet), and a
  *   structural choice (the time form, the day atom form) holds
  *   kind: null the same way.
+ *
  * - "Absent" splits by whether the document could spell it: where an
  *   empty spelling is invalid (annotations, boundaries, the axes, the
  *   resolvers list, workweek, business hours), the empty string / empty

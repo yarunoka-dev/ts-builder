@@ -276,7 +276,11 @@ type DraftDocument = {
 
 The draft model's root — the document model of @yarunoka/core mirrored with every node loosened to tolerate work in progress. Three loosenings and nothing else:
 
-- A freely-typed leaf (a time, a date, a boundary, an integer, a name, the timezone, an annotation) holds whatever string was typed. Validation is derived at read time; the draft never stores its own error state. - A closed-set leaf holds its value or null (not chosen yet), and a structural choice (the time form, the day atom form) holds kind: null the same way. - "Absent" splits by whether the document could spell it: where an empty spelling is invalid (annotations, boundaries, the axes, the resolvers list, workweek, business hours), the empty string / empty list reads as "key omitted"; where an explicit empty list is a meaningful statement (a date list), an explicit mode tells the forms apart.
+- A freely-typed leaf (a time, a date, a boundary, an integer, a name, the timezone, an annotation) holds whatever string was typed. Validation is derived at read time; the draft never stores its own error state.
+
+- A closed-set leaf holds its value or null (not chosen yet), and a structural choice (the time form, the day atom form) holds kind: null the same way.
+
+- "Absent" splits by whether the document could spell it: where an empty spelling is invalid (annotations, boundaries, the axes, the resolvers list, workweek, business hours), the empty string / empty list reads as "key omitted"; where an explicit empty list is a meaningful statement (a date list), an explicit mode tells the forms apart.
 
 ### DraftEntry
 
