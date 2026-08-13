@@ -45,10 +45,15 @@ be swapped later with `setResolvers`.
 `getState` answers the current draft — an immutable snapshot whose
 identity changes exactly when the draft changes — and `subscribe`
 registers a change listener. That pair is the external-store contract,
-so a React binding is one call:
+so a React binding is one call inside a hook:
 
 ```ts
-const draft = useSyncExternalStore(builder.subscribe, builder.getState);
+import { useSyncExternalStore } from 'react';
+import type { DraftDocument, YrnkBuilder } from '@yarunoka/builder';
+
+function useDraft(builder: YrnkBuilder): DraftDocument {
+  return useSyncExternalStore(builder.subscribe, builder.getState);
+}
 ```
 
 Other frameworks are equally thin: re-read `getState` (and the derived
