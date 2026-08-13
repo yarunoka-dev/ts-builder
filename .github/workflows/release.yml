@@ -9,9 +9,75 @@ permissions:
   contents: read
 
 jobs:
+  # Building needs a checkout, so this job holds no write scope; the
+  # publish and release jobs below never execute repository code.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 26
+          cache: npm
+
+      # --ignore-scripts keeps dependency lifecycle scripts from running
+      # in CI (ops docs/security.md)
+      - name: Install dependencies from lock file
+        run: npm ci --ignore-scripts
+
+      # npm publishes whatever package.json declares, so a tag on a tree
+      # that declares a different version would ship a package that
+      # contradicts the release it came from.
+      - name: Verify the tag matches the declared package version
+        run: |
+          declared="$(node -p "require('./package.json').version")"
+          if [ "$declared" != "$GITHUB_REF_NAME" ]; then
+            echo "package.json declares $declared but the tag is $GITHUB_REF_NAME"
+            exit 1
+          fi
+
+      # prepack builds dist before the tarball is assembled
+      - name: Pack the publishable tarball
+        run: npm pack
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: package
+          path: yarunoka-builder-*.tgz
+          if-no-files-found: error
+
+  # No checkout: the job publishes the tarball built above, so the job
+  # holding the OIDC identity never executes repository code. Trusted
+  # publishing needs no long-lived secret; the environment adds the
+  # GitHub-side rule that only tag-started runs may claim it, which the
+  # npm side verifies through the trusted publisher's environment field.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    permissions:
+      id-token: write
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 26
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: package
+
+      - name: Publish to npm with provenance
+        run: npm publish yarunoka-builder-*.tgz --provenance --access public
+
   # No checkout: gh operates on the remote repository directly, so the
   # job never executes repository code with a write-scoped token.
   release:
+    needs: publish
     runs-on: ubuntu-latest
     permissions:
       contents: write
