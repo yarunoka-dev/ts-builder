@@ -39,12 +39,16 @@ export function applyOp(draft: DraftDocument, op: BuilderOp, alloc: IdAllocator)
       return { ...draft, resolvers: removeEntry(draft.resolvers, op.id) };
 
     case 'calendar/set-date-set-mode':
-      return withPosition(draft, op.target, () =>
-        op.mode === 'unset'
-          ? { mode: 'unset' }
-          : op.mode === 'list'
-            ? { mode: 'list', dates: [] }
-            : { mode: 'name', name: '' },
+      return withPosition(draft, op.target, (position) =>
+        // Re-dispatching the current mode is a no-op, not a reset: a UI
+        // control re-emitting its selection must not clear typed content.
+        position.mode === op.mode
+          ? position
+          : op.mode === 'unset'
+            ? { mode: 'unset' }
+            : op.mode === 'list'
+              ? { mode: 'list', dates: [] }
+              : { mode: 'name', name: '' },
       );
     case 'calendar/set-date-set-name':
       return withPosition(draft, op.target, (position) => {
@@ -229,7 +233,9 @@ export function applyOp(draft: DraftDocument, op: BuilderOp, alloc: IdAllocator)
     case 'schedule/set-time-kind':
       return withSchedule(draft, op.scheduleId, (schedule) => ({
         ...schedule,
-        time: freshTimeSpec(op.kind),
+        // Same no-op rule as the date-set mode: only an actual form
+        // switch gets fresh content.
+        time: schedule.time.kind === op.kind ? schedule.time : freshTimeSpec(op.kind),
       }));
     case 'schedule/add-time':
       return withTimes(draft, op.scheduleId, (times) => [...times, { id: alloc(), value: '' }]);

@@ -155,6 +155,27 @@ describe('calendar date-list position ops', () => {
 
     assert.throws(() => run({ type: 'calendar/add-date', target: 'holidays' }), /list/);
   });
+
+  it('keeps the content when the current mode is dispatched again', () => {
+    const { run } = editor();
+    let draft = run(
+      { type: 'calendar/set-date-set-mode', target: 'holidays', mode: 'list' },
+      { type: 'calendar/add-date', target: 'holidays' },
+    );
+    const position = draft.calendar.holidays;
+    const id = (position.mode === 'list' ? position.dates[0]?.id : undefined) as string;
+
+    draft = run(
+      { type: 'calendar/set-date', target: 'holidays', id, date: '2026-01-01' },
+      { type: 'calendar/set-date-set-mode', target: 'holidays', mode: 'list' },
+    );
+    assert.deepEqual(
+      draft.calendar.holidays.mode === 'list'
+        ? draft.calendar.holidays.dates.map((d) => d.value)
+        : [],
+      ['2026-01-01'],
+    );
+  });
 });
 
 describe('calendar workweek, business hours, and date_sets ops', () => {
@@ -375,6 +396,29 @@ describe('schedule ops', () => {
 
     draft = run({ type: 'schedule/set-time-kind', scheduleId: id, kind: null });
     assert.deepEqual(scheduleOf(draft).time, { kind: null });
+  });
+
+  it('keeps the content when the current time form is dispatched again', () => {
+    const { id, run } = withSchedule();
+    let draft = run(
+      { type: 'schedule/set-time-kind', scheduleId: id, kind: 'times' },
+      { type: 'schedule/add-time', scheduleId: id },
+    );
+    const time = scheduleOf(draft).time;
+    const timeId = (time.kind === 'times' ? time.times[0]?.id : undefined) as string;
+
+    draft = run(
+      { type: 'schedule/set-time', scheduleId: id, id: timeId, value: '09:00' },
+      { type: 'schedule/set-time-kind', scheduleId: id, kind: 'times' },
+    );
+    assert.deepEqual(
+      scheduleOf(draft).time.kind === 'times'
+        ? (scheduleOf(draft).time as { times: readonly { value: string }[] }).times.map(
+            (e) => e.value,
+          )
+        : [],
+      ['09:00'],
+    );
   });
 
   it('edits the fixed times enumeration', () => {
