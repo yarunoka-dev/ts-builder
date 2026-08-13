@@ -111,6 +111,32 @@ describe('leafProblems', () => {
     );
   });
 
+  it('reports duplicate date_sets names as field problems', () => {
+    // The wire form is a JSON object, so duplicate keys would collapse
+    // silently at write-back — parse never gets to see them. The walk
+    // has to be the gate.
+    const base = emptyDraftDocument();
+    const draft = {
+      ...base,
+      timezone: 'UTC',
+      calendar: {
+        ...base.calendar,
+        dateSets: [
+          { id: 's1', name: 'paydays', dates: [{ id: 's1d1', value: '2026-04-25' }] },
+          { id: 's2', name: 'paydays', dates: [] },
+        ],
+      },
+    };
+    const problems = leafProblems(draft);
+
+    assert.deepEqual(
+      problems
+        .filter((problem) => /Duplicate/.test(problem.message))
+        .map((problem) => problem.path.join('.')),
+      ['calendar.dateSets.s2.name'],
+    );
+  });
+
   it('judges schedule boundaries, axes, and annotations', () => {
     const base = emptyDraftDocument();
     const draft = {

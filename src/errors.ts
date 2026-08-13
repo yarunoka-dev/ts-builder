@@ -31,7 +31,9 @@ import type {
  * Empty spellings that read as "key omitted" are not judged: absence is
  * a valid state of the draft. The two spellable-but-invalid emptinesses
  * (no schedules, an empty times enumeration) are reported here so they
- * carry a path.
+ * carry a path, and so is a duplicated date_sets name — the wire form
+ * is a JSON object, so that duplication would collapse silently before
+ * parse could reject it.
  */
 export function leafProblems(draft: DraftDocument): readonly DraftProblem[] {
   const problems: DraftProblem[] = [];
@@ -66,8 +68,20 @@ export function leafProblems(draft: DraftDocument): readonly DraftProblem[] {
     );
   }
 
+  // Duplicate names are judged here and not left to parse: the wire
+  // form is a JSON object, so a duplicate key would collapse silently
+  // at write-back and parse would never see it — this is the one
+  // duplication only the draft can catch.
+  const dateSetNames = new Set<string>();
+
   for (const set of draft.calendar.dateSets) {
-    report(['calendar', 'dateSets', set.id, 'name'], nameProblem(set.name));
+    const clash = set.name !== '' && dateSetNames.has(set.name);
+
+    dateSetNames.add(set.name);
+    report(
+      ['calendar', 'dateSets', set.id, 'name'],
+      clash ? `Duplicate name in date_sets: ${set.name}` : nameProblem(set.name),
+    );
 
     for (const date of set.dates) {
       report(['calendar', 'dateSets', set.id, date.id], dateLiteralProblem(date.value));
