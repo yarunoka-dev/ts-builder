@@ -53,10 +53,11 @@ export function preview(
   request: PreviewRequest,
 ): { readonly occurrences: readonly PreviewOccurrence[]; readonly exhausted: boolean } {
   if ('range' in request) {
-    return {
-      occurrences: collect(document, scheduleIds, request.range.from, request.range.through),
-      exhausted: false,
-    };
+    const found: Found = new Map();
+
+    collectInto(found, document, scheduleIds, request.range.from, request.range.through);
+
+    return { occurrences: ordered(found, document.timezone), exhausted: false };
   }
 
   if (request.next <= 0) {
@@ -73,24 +74,35 @@ export function preview(
     .add({ seconds: 1 });
   const limit = start.add(request.horizon ?? DEFAULT_HORIZON);
 
-  // Widen by doubling: a dense schedule answers within the first
-  // windows and never reaches far — which also keeps far-out resolver
-  // consultations to the sparse cases that need them.
+  // Widen by doubling, enumerating only the slice each pass adds: a
+  // dense schedule answers within the first windows and never reaches
+  // far, and the years already walked are not re-walked (nor their
+  // resolvers re-consulted) when the search does widen. Points are
+  // whole seconds, so consecutive slices meet at a one-second step; an
+  // all-day occurrence overlapping the seam lands in both slices and
+  // the accumulator's keying folds it back into one.
+  const found: Found = new Map();
+  let sliceFrom = start;
   let days = 32;
 
   for (;;) {
     const through = start.add({ days });
     const cut = Temporal.ZonedDateTime.compare(through, limit) >= 0;
-    const found = collect(document, scheduleIds, start, cut ? limit : through);
+    const sliceThrough = cut ? limit : through;
 
-    if (found.length >= request.next) {
-      return { occurrences: found.slice(0, request.next), exhausted: false };
+    collectInto(found, document, scheduleIds, sliceFrom, sliceThrough);
+
+    const occurrences = ordered(found, document.timezone);
+
+    if (occurrences.length >= request.next) {
+      return { occurrences: occurrences.slice(0, request.next), exhausted: false };
     }
 
     if (cut) {
-      return { occurrences: found, exhausted: true };
+      return { occurrences, exhausted: true };
     }
 
+    sliceFrom = sliceThrough.add({ seconds: 1 });
     days *= 2;
   }
 }
@@ -111,20 +123,23 @@ function zonedOf(instant: YrnkInstant, timezone: string): Temporal.ZonedDateTime
   return Temporal.Instant.from(instant).toZonedDateTimeISO(timezone);
 }
 
+/** The accumulator of a merged enumeration, keyed within a kind. */
+type Found = Map<string, { occurrence: YrnkOccurrence; scheduleIds: DraftId[] }>;
+
 /**
- * One merged enumeration: deduplicated within a kind (an all-day
- * occurrence by its day, a timed one by its instant — the kinds never
- * merge), ascending by instant with an all-day occurrence standing at
- * the start of its day and before a timed point at the same instant.
+ * One slice of the merged enumeration, folded into the accumulator:
+ * deduplicated within a kind (an all-day occurrence by its day, a
+ * timed one by its instant — the kinds never merge), with a later
+ * slice still able to add a schedule id to an occurrence found
+ * earlier.
  */
-function collect(
+function collectInto(
+  found: Found,
   document: YrnkDocument,
   scheduleIds: readonly DraftId[],
   from: YrnkInstant,
   through: YrnkInstant,
-): PreviewOccurrence[] {
-  const found = new Map<string, { occurrence: YrnkOccurrence; scheduleIds: DraftId[] }>();
-
+): void {
   document.schedules.forEach((schedule, index) => {
     const scheduleId = scheduleIds[index];
 
@@ -146,13 +161,20 @@ function collect(
       }
     }
   });
+}
 
+/**
+ * The accumulator read out in the enumeration's order: ascending by
+ * instant, with an all-day occurrence standing at the start of its day
+ * and before a timed point at the same instant.
+ */
+function ordered(found: Found, timezone: string): PreviewOccurrence[] {
   return [...found.values()]
     .map((entry) => ({
       entry,
       instant:
         entry.occurrence instanceof Temporal.PlainDate
-          ? entry.occurrence.toZonedDateTime(document.timezone).epochMilliseconds
+          ? entry.occurrence.toZonedDateTime(timezone).epochMilliseconds
           : entry.occurrence.epochMilliseconds,
       timed: entry.occurrence instanceof Temporal.PlainDate ? 0 : 1,
     }))
