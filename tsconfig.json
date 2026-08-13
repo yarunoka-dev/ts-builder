@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es2024",
+    // Temporal has no versioned lib entry yet; pull it in explicitly on
+    // top of the newest stable lib
+    "lib": ["es2025", "esnext.temporal"],
+    "module": "nodenext",
+    "types": ["node"],
+    // Sources import each other with the real .ts extension so Node can
+    // run them directly through type stripping; tsc rewrites the
+    // extension to .js in the emitted output
+    "rewriteRelativeImportExtensions": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "verbatimModuleSyntax": true,
+    // Tests execute the .ts sources directly through Node's type
+    // stripping, which cannot run non-erasable syntax (enums, namespaces)
+    "erasableSyntaxOnly": true,
+    "noEmit": true
+  },
+  "include": ["src", "tests"]
+}

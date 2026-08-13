@@ -1,0 +1,18 @@
+/node_modules/
+/dist/
+
+# Editors and IDEs
+/.idea/
+/.vscode/
+/.zed/
+/.fleet/
+/*.sublime-*
+
+# AI coding tools
+/.claude/
+/.codex/
+/.cursor/
+/.gemini/
+/.junie/
+/.aider*
+/CLAUDE.local.md
