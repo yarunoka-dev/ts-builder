@@ -1,6 +1,6 @@
 {
   "name": "@yarunoka/builder",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Yarunoka schedule definition DSL — headless schedule editor foundation for TypeScript",
   "keywords": [
     "yarunoka",
