@@ -32,6 +32,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "docs:check": "node tools/docgen/generate.ts --check",
+    "docs:generate": "node tools/docgen/generate.ts",
     "format": "biome check --write .",
     "lint": "biome ci .",
     "prepack": "npm run build",

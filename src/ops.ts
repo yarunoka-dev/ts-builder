@@ -158,4 +158,5 @@ export type BuilderOp =
       readonly unit: YrnkTimeUnit | null;
     };
 
+/** Which built-in date-list position of the calendar an op addresses. */
 export type DateSetTarget = 'holidays' | 'business-holidays' | 'business-days';

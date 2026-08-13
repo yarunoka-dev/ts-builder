@@ -2,6 +2,10 @@ import type { YrnkDocument, YrnkInstant, YrnkOccurrence } from '@yarunoka/core';
 import { occurrencesIn } from '@yarunoka/core';
 import type { DraftId } from './draft.ts';
 
+/**
+ * What to preview: the next N occurrences after an instant, or every
+ * occurrence in an explicit range.
+ */
 export type PreviewRequest =
   | {
       /** How many upcoming occurrences to answer */
@@ -16,6 +20,10 @@ export type PreviewRequest =
     }
   | { readonly range: { readonly from: YrnkInstant; readonly through: YrnkInstant } };
 
+/**
+ * One line of a preview: the occurrence as core answers it, and which
+ * draft schedules produced it.
+ */
 export type PreviewOccurrence = {
   readonly occurrence: YrnkOccurrence;
   /** The draft schedules this occurrence came from */

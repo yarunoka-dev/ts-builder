@@ -14,6 +14,11 @@ import type {
 } from './draft.ts';
 import { leafProblems } from './errors.ts';
 
+/**
+ * The exit's answer: the parsed document with its raw spelling when
+ * the draft exports cleanly, or the problems that keep it from the
+ * wire.
+ */
 export type ToYrnkResult =
   | { readonly ok: true; readonly document: YrnkDocument; readonly raw: Record<string, unknown> }
   | { readonly ok: false; readonly problems: readonly DraftProblem[] };

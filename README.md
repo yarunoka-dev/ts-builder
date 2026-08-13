@@ -51,10 +51,9 @@ The same as `@yarunoka/core`: all date-time work goes through the
 [Temporal API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal)
 (ES2026) on the global `Temporal` object — no polyfill is shipped.
 
-- **Node.js 26 or newer** has Temporal built in.
-- **Browsers**: Firefox, Chrome, and Edge ship Temporal natively. For
-  runtimes without it (Safari stable, older Node.js), install a polyfill
-  in your application once:
+- **Node.js 26 or newer** has it built in.
+- Any runtime without it needs a polyfill, installed in your
+  application once:
 
   ```console
   npm install temporal-polyfill

@@ -14,6 +14,11 @@ export type OptionContext =
   | { readonly at: 'calendar-word'; readonly scheduleId: DraftId }
   | { readonly at: 'name'; readonly scheduleId: DraftId };
 
+/**
+ * What a decision point offers: every value of its closed set, each
+ * marked available or not. Unavailable options are answered rather
+ * than dropped — whether to hide or to disable is the UI's decision.
+ */
 export type Options = readonly {
   readonly value: string;
   readonly available: boolean;

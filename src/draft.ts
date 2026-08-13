@@ -6,18 +6,26 @@ import type {
   YrnkTimeUnit,
 } from '@yarunoka/core';
 
+/** Opaque, draft-only; the UI's list key and the ops' address. toYrnk drops it. */
+export type DraftId = string;
+
+/** A list element wrapped for identity: the id names the slot, not the value. */
+export type DraftEntry<T> = { readonly id: DraftId; readonly value: T };
+
 /**
- * The draft model — the document model of @yarunoka/core mirrored with
- * every node loosened to tolerate work in progress. Three loosenings and
- * nothing else:
+ * The draft model's root — the document model of @yarunoka/core
+ * mirrored with every node loosened to tolerate work in progress.
+ * Three loosenings and nothing else:
  *
  * - A freely-typed leaf (a time, a date, a boundary, an integer, a name,
  *   the timezone, an annotation) holds whatever string was typed.
  *   Validation is derived at read time; the draft never stores its own
  *   error state.
+ *
  * - A closed-set leaf holds its value or null (not chosen yet), and a
  *   structural choice (the time form, the day atom form) holds
  *   kind: null the same way.
+ *
  * - "Absent" splits by whether the document could spell it: where an
  *   empty spelling is invalid (annotations, boundaries, the axes, the
  *   resolvers list, workweek, business hours), the empty string / empty
@@ -25,13 +33,6 @@ import type {
  *   meaningful statement (a date list), an explicit mode tells the
  *   forms apart.
  */
-
-/** Opaque, draft-only; the UI's list key and the ops' address. toYrnk drops it. */
-export type DraftId = string;
-
-/** A list element wrapped for identity: the id names the slot, not the value. */
-export type DraftEntry<T> = { readonly id: DraftId; readonly value: T };
-
 export type DraftDocument = {
   /** '' reads as "key omitted" */
   readonly label: string;
@@ -59,6 +60,10 @@ export type DraftDateSetPosition =
   | { readonly mode: 'list'; readonly dates: readonly DraftEntry<string>[] }
   | { readonly mode: 'name'; readonly name: string };
 
+/**
+ * The calendar under edit: the three built-in date-list positions, the
+ * workweek, business hours, and the open date_sets namespace.
+ */
 export type DraftCalendar = {
   readonly holidays: DraftDateSetPosition;
   readonly businessHolidays: DraftDateSetPosition;
@@ -82,6 +87,11 @@ export type DraftDateSetEntry = {
   readonly dates: readonly DraftEntry<string>[];
 };
 
+/**
+ * One schedule under edit. The shape mirrors the model's schedule —
+ * the axes, the modifiers, the time part — with the id as the
+ * schedule's address for ops, options, and problem paths.
+ */
 export type DraftSchedule = {
   readonly id: DraftId;
   readonly label: string;
@@ -98,8 +108,13 @@ export type DraftSchedule = {
   readonly time: DraftTimeSpec;
 };
 
+/** A days-list element wrapped for identity — the day atom's counterpart of DraftEntry. */
 export type DraftDayAtomEntry = { readonly id: DraftId; readonly atom: DraftDayAtom };
 
+/**
+ * One atom of the days enumeration: the model's forms with their
+ * leaves loosened, plus kind: null while the form is not chosen yet.
+ */
 export type DraftDayAtom =
   | { readonly kind: null }
   | { readonly kind: 'month-day'; readonly day: string }
@@ -117,12 +132,17 @@ export type DraftDayAtom =
 /** A day atom legal as a shift / if condition — every form except the day cycle. */
 export type DraftDayCondition = Exclude<DraftDayAtom, { kind: 'day-cycle' }>;
 
+/**
+ * The shift modifier under edit. Unlike the model's shift, direction
+ * may be null — a shift can exist before its direction is chosen.
+ */
 export type DraftShift = {
   readonly direction: YrnkDirection | null;
   readonly orSame: boolean;
   readonly condition: DraftDayCondition;
 };
 
+/** The if modifier under edit — filtering without moving, as in the model. */
 export type DraftIf = {
   /**
    * null means "the day itself", exactly as in the model — the default
@@ -133,16 +153,26 @@ export type DraftIf = {
   readonly condition: DraftDayCondition;
 };
 
+/** The every tuple under edit: the count as typed, and the unit or null. */
 export type DraftEveryTuple = {
   readonly count: string;
   readonly unit: YrnkTimeUnit | null;
 };
 
+/**
+ * The grid's between position — a closed choice among the whole day,
+ * an explicit window, and the business_hour word, so no null form is
+ * needed.
+ */
 export type DraftBetween =
   | { readonly kind: 'whole-day' }
   | { readonly kind: 'window'; readonly start: string; readonly end: string }
   | { readonly kind: 'business-hour' };
 
+/**
+ * The time part under edit: one of the model's four forms, or
+ * kind: null while the form is not chosen yet.
+ */
 export type DraftTimeSpec =
   | { readonly kind: null }
   | { readonly kind: 'times'; readonly times: readonly DraftEntry<string>[] }

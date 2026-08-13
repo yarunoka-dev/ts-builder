@@ -19,5 +19,8 @@
     "erasableSyntaxOnly": true,
     "noEmit": true
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "tools"],
+  // The fixture project carries its own tsconfig; keeping it out of this
+  // one leaves each fixture file with a single covering project
+  "exclude": ["tools/docgen/tests/fixtures"]
 }
