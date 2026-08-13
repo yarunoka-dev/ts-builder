@@ -10,11 +10,11 @@ sidebar:
 The same as `@yarunoka/core`: all date-time work happens through the
 [Temporal API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal)
 (ES2026) on the global `Temporal` object, and no polyfill is shipped.
+**The requirement is that `Temporal` is available — nothing else.**
 
-- **Node.js 26 or newer** has Temporal built in.
-- **Browsers**: Firefox, Chrome, and Edge ship Temporal natively. For
-  runtimes without it (Safari stable, older Node.js), your application
-  installs a polyfill once — see
+- **Node.js 26 or newer** has it built in.
+- Any runtime without it satisfies the requirement with a polyfill your
+  application installs once — see
   [Installation](installation#the-temporal-polyfill).
 
 ## Module format

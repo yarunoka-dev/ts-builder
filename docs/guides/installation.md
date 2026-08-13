@@ -24,8 +24,8 @@ use**.
 
 ## The Temporal polyfill
 
-For runtimes without the Temporal API (Safari stable, Node.js 25 and
-older), install a polyfill once, in your application:
+For runtimes without the Temporal API, install a polyfill once, in
+your application:
 
 ```console
 npm install temporal-polyfill
