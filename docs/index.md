@@ -13,7 +13,7 @@ the judgment calls an editor needs, and it renders nothing: no
 components, no framework dependency.
 
 The language itself — what a document may say and what it means — is
-defined in the [spec repository](https://github.com/yarunoka-dev/spec/tree/1.0),
+defined in the [spec repository](https://github.com/yarunoka-dev/spec/tree/1.1),
 and the engine has documentation of its own. This documentation is
 about the builder package only.
 
