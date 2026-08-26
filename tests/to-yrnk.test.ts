@@ -92,7 +92,7 @@ describe('toYrnk', () => {
 
     assert.ok(result.ok);
     assert.deepEqual(result.raw, {
-      version: '1.0',
+      version: '1.1',
       timezone: 'UTC',
       schedules: [{ days: ['mon'], allday: true }],
     });
@@ -143,6 +143,41 @@ describe('toYrnk', () => {
     assert.deepEqual(result.problems[0]?.path, []);
     assert.equal(result.problems[0]?.origin, 'document');
     assert.match(result.problems[0]?.message as string, /requires from/);
+  });
+
+  it('writes the version the draft carries, not the latest', () => {
+    const document = parse(FULL_WIRE, { resolvers: RESOLVERS });
+    const draft = expandDocument(document, createIdAllocator());
+    const result = toYrnk(draft, RESOLVERS);
+
+    assert.ok(result.ok);
+    assert.equal(result.raw.version, '1.0');
+  });
+
+  it('writes the latest supported version when migrating', () => {
+    const document = parse(FULL_WIRE, { resolvers: RESOLVERS });
+    const draft = expandDocument(document, createIdAllocator());
+    const result = toYrnk(draft, RESOLVERS, { migrate: true });
+
+    assert.ok(result.ok);
+    assert.equal(result.raw.version, '1.1');
+  });
+
+  it('lets the exit reject a migrated draft the latest version refuses', () => {
+    // Legal under 1.0 (counts are unbounded there), over the day-cycle
+    // bound of 1.1 — migration exposes it to the stricter gate.
+    const document = parse({
+      version: '1.0',
+      timezone: 'UTC',
+      schedules: [{ from: '2026-01-01 00:00', days: [['every', 4000000, 'day']], allday: true }],
+    });
+    const draft = expandDocument(document, createIdAllocator());
+    const kept = toYrnk(draft, {});
+    const migrated = toYrnk(draft, {}, { migrate: true });
+
+    assert.ok(kept.ok);
+    assert.ok(!migrated.ok);
+    assert.equal(migrated.problems[0]?.origin, 'document');
   });
 
   it('needs the declared resolvers bound at the exit', () => {

@@ -9,6 +9,7 @@ import type {
   YrnkShift,
   YrnkTimeSpec,
 } from '@yarunoka/core';
+import { SUPPORTED_VERSIONS } from '@yarunoka/core';
 import type {
   DraftBetween,
   DraftCalendar,
@@ -30,13 +31,16 @@ import type { IdAllocator } from './ids.ts';
  * direction of the mirror. Every leaf that the draft holds as a string
  * is stringified from the model's value; the model's absent keys become
  * the draft's empty spellings. The inverse lives in to-yrnk.ts, and
- * expanding then writing back yields the structurally identical
- * document (the round-trip the tests pin down).
+ * expanding then writing back yields an equivalent document on the
+ * same version — identical but for spelling the draft does not carry
+ * (a 1.0 document's authored empty objects come back as omitted keys;
+ * the round-trip the tests pin down).
  */
 export function expandDocument(document: YrnkDocument, alloc: IdAllocator): DraftDocument {
   return {
     label: document.label ?? '',
     description: document.description ?? '',
+    version: document.version,
     timezone: document.timezone,
     resolvers: document.resolvers.map((name) => entryOf(name, alloc)),
     calendar: expandCalendar(document.calendar, alloc),
@@ -44,10 +48,21 @@ export function expandDocument(document: YrnkDocument, alloc: IdAllocator): Draf
   };
 }
 
+/**
+ * The newest version core reads — what a fresh draft authors against
+ * and what a migrating exit writes. SUPPORTED_VERSIONS is ordered
+ * oldest first and is never empty, which makes its last entry the
+ * latest.
+ */
+export function latestSupportedVersion(): string {
+  return SUPPORTED_VERSIONS[SUPPORTED_VERSIONS.length - 1] as string;
+}
+
 export function emptyDraftDocument(): DraftDocument {
   return {
     label: '',
     description: '',
+    version: latestSupportedVersion(),
     timezone: '',
     resolvers: [],
     calendar: {

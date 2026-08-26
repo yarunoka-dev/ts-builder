@@ -14,6 +14,13 @@ export type YrnkBuilderOptions = {
   readonly initial?: YrnkDocument;
   /** What the host binds the draft's declared resolver names to */
   readonly resolvers?: Readonly<Record<string, YrnkResolver>>;
+  /**
+   * Export on the latest supported spec version instead of the version
+   * the loaded document declares (a fresh draft starts on the latest
+   * either way). Off by default: opening and saving a document does not
+   * change what version it declares unless the host asks for that.
+   */
+  readonly migrate?: boolean;
 };
 
 /**
@@ -78,9 +85,12 @@ export function createYrnkBuilder(options?: YrnkBuilderOptions): YrnkBuilder {
     result: ToYrnkResult;
   } | null = null;
 
+  // migrate is fixed at creation, so it is not part of the memo key.
+  const migrate = options?.migrate === true;
+
   function exitOf(): ToYrnkResult {
     if (exitMemo === null || exitMemo.draft !== draft || exitMemo.resolvers !== resolvers) {
-      exitMemo = { draft, resolvers, result: toYrnk(draft, resolvers) };
+      exitMemo = { draft, resolvers, result: toYrnk(draft, resolvers, { migrate }) };
     }
 
     return exitMemo.result;

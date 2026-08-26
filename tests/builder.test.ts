@@ -83,6 +83,18 @@ describe('createYrnkBuilder', () => {
     assert.deepEqual(result.occurrences[0]?.scheduleIds, [scheduleId]);
   });
 
+  it('exports on the carried version, or the latest when created migrating', () => {
+    const kept = createYrnkBuilder({ initial: parse(WIRE) });
+    const migrated = createYrnkBuilder({ initial: parse(WIRE), migrate: true });
+    const keptResult = kept.toYrnk();
+    const migratedResult = migrated.toYrnk();
+
+    assert.ok(keptResult.ok);
+    assert.equal(keptResult.raw.version, '1.0');
+    assert.ok(migratedResult.ok);
+    assert.equal(migratedResult.raw.version, '1.1');
+  });
+
   it('refuses a preview while the draft has problems', () => {
     const builder = createYrnkBuilder();
     const result = builder.preview({ next: 1 });

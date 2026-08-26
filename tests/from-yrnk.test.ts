@@ -73,6 +73,7 @@ describe('expandDocument', () => {
 
     assert.equal(draft.label, 'Payroll');
     assert.equal(draft.description, 'Company payroll calendar');
+    assert.equal(draft.version, '1.0');
     assert.equal(draft.timezone, 'Asia/Tokyo');
     assert.deepEqual(
       draft.resolvers.map((entry) => entry.value),
@@ -249,6 +250,9 @@ describe('emptyDraftDocument', () => {
 
     assert.equal(draft.label, '');
     assert.equal(draft.timezone, '');
+    // A fresh draft authors against the latest supported version; only
+    // a loaded document brings an older declaration with it.
+    assert.equal(draft.version, '1.1');
     assert.deepEqual(draft.resolvers, []);
     assert.deepEqual(draft.calendar.holidays, { mode: 'unset' });
     assert.deepEqual(draft.schedules, []);
