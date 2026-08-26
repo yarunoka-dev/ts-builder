@@ -36,9 +36,17 @@ const builder = createYrnkBuilder({
 ```
 
 Any valid Yrnk document loads into a draft, and an unedited draft
-writes back the structurally identical document. The resolver bindings
-are the engine's own contract — see the core documentation — and can
-be swapped later with `setResolvers`.
+writes back an equivalent document on the same version — identical but
+for spelling the draft does not carry (a 1.0 document's authored empty
+`calendar` or `date_sets` comes back as the omitted key). The resolver
+bindings are the engine's own contract — see the core documentation —
+and can be swapped later with `setResolvers`.
+
+The draft carries the loaded document's declared spec version and
+writes it back on export; a fresh draft authors against the latest
+supported version. To move an older document up instead, create the
+store with `migrate: true`: the exit then writes the latest version,
+and the newer version's stricter rules judge the export.
 
 ## The external-store shape
 
@@ -165,3 +173,8 @@ if (result.ok) {
 A preview needs a clean draft, exactly like the exit — the problems
 come back otherwise, so a preview pane and an error pane are two
 renderings of the same state.
+
+A range whose `from` lies after `through` throws the engine's
+malformed-query `YrnkError` instead of answering: a reversed range
+signals broken caller state, which is a bug to surface, not a problem
+of the draft.

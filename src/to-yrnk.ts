@@ -1,5 +1,5 @@
 import type { YrnkDocument, YrnkResolver } from '@yarunoka/core';
-import { parse, SUPPORTED_VERSION, YrnkError } from '@yarunoka/core';
+import { parse, YrnkError } from '@yarunoka/core';
 import type {
   DraftBetween,
   DraftDateSetPosition,
@@ -13,6 +13,7 @@ import type {
   DraftTimeSpec,
 } from './draft.ts';
 import { leafProblems } from './errors.ts';
+import { latestSupportedVersion } from './from-yrnk.ts';
 
 /**
  * The exit's answer: the parsed document with its raw spelling when
@@ -22,6 +23,16 @@ import { leafProblems } from './errors.ts';
 export type ToYrnkResult =
   | { readonly ok: true; readonly document: YrnkDocument; readonly raw: Record<string, unknown> }
   | { readonly ok: false; readonly problems: readonly DraftProblem[] };
+
+/** How the exit writes, beyond what the draft itself holds. */
+export type ToYrnkOptions = {
+  /**
+   * Write the latest supported version instead of the one the draft
+   * carries. The newer version's stricter rules then judge the export
+   * at the document gate.
+   */
+  readonly migrate?: boolean;
+};
 
 /**
  * The draft's exit. Three steps: the field walk (a draft with a broken
@@ -34,6 +45,7 @@ export type ToYrnkResult =
 export function toYrnk(
   draft: DraftDocument,
   resolvers: Readonly<Record<string, YrnkResolver>>,
+  options?: ToYrnkOptions,
 ): ToYrnkResult {
   const problems = leafProblems(draft);
 
@@ -41,7 +53,7 @@ export function toYrnk(
     return { ok: false, problems };
   }
 
-  const raw = rawOf(draft);
+  const raw = rawOf(draft, options?.migrate === true);
 
   try {
     return { ok: true, document: parse(raw, { resolvers }), raw };
@@ -62,8 +74,9 @@ export function toYrnk(
 export function draftProblems(
   draft: DraftDocument,
   resolvers: Readonly<Record<string, YrnkResolver>>,
+  options?: ToYrnkOptions,
 ): readonly DraftProblem[] {
-  const result = toYrnk(draft, resolvers);
+  const result = toYrnk(draft, resolvers, options);
 
   return result.ok ? [] : result.problems;
 }
@@ -74,7 +87,7 @@ export function draftProblems(
  * unedited draft's output is structurally the document build() would
  * write.
  */
-function rawOf(draft: DraftDocument): Record<string, unknown> {
+function rawOf(draft: DraftDocument, migrate: boolean): Record<string, unknown> {
   const raw: Record<string, unknown> = {};
 
   if (draft.label !== '') {
@@ -85,7 +98,7 @@ function rawOf(draft: DraftDocument): Record<string, unknown> {
     raw.description = draft.description;
   }
 
-  raw.version = SUPPORTED_VERSION;
+  raw.version = migrate ? latestSupportedVersion() : draft.version;
   raw.timezone = draft.timezone;
 
   if (draft.resolvers.length > 0) {

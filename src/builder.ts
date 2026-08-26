@@ -8,12 +8,23 @@ import { type OptionContext, type Options, optionsAt } from './options.ts';
 import { type PreviewOccurrence, type PreviewRequest, preview } from './preview.ts';
 import { type ToYrnkResult, toYrnk } from './to-yrnk.ts';
 
-/** What createYrnkBuilder accepts: the starting document and the host's resolver bindings. */
+/**
+ * What createYrnkBuilder accepts: the starting document, the host's
+ * resolver bindings, and whether exports migrate to the latest spec
+ * version.
+ */
 export type YrnkBuilderOptions = {
   /** The document to start editing; an empty new draft when omitted */
   readonly initial?: YrnkDocument;
   /** What the host binds the draft's declared resolver names to */
   readonly resolvers?: Readonly<Record<string, YrnkResolver>>;
+  /**
+   * Export on the latest supported spec version instead of the version
+   * the loaded document declares (a fresh draft starts on the latest
+   * either way). Off by default: opening and saving a document does not
+   * change what version it declares unless the host asks for that.
+   */
+  readonly migrate?: boolean;
 };
 
 /**
@@ -78,9 +89,12 @@ export function createYrnkBuilder(options?: YrnkBuilderOptions): YrnkBuilder {
     result: ToYrnkResult;
   } | null = null;
 
+  // migrate is fixed at creation, so it is not part of the memo key.
+  const migrate = options?.migrate === true;
+
   function exitOf(): ToYrnkResult {
     if (exitMemo === null || exitMemo.draft !== draft || exitMemo.resolvers !== resolvers) {
-      exitMemo = { draft, resolvers, result: toYrnk(draft, resolvers) };
+      exitMemo = { draft, resolvers, result: toYrnk(draft, resolvers, { migrate }) };
     }
 
     return exitMemo.result;

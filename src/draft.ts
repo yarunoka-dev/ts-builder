@@ -37,6 +37,13 @@ export type DraftDocument = {
   /** '' reads as "key omitted" */
   readonly label: string;
   readonly description: string;
+  /**
+   * The declared spec version the draft carries: the loaded document's
+   * own, or the latest supported version for a fresh draft. No op edits
+   * it — an editor edits the document, not its version; moving to the
+   * latest is the exit's decision (the builder's migrate option).
+   */
+  readonly version: string;
   /** Always written out: a document cannot omit its timezone */
   readonly timezone: string;
   /** [] reads as "key omitted" */
@@ -45,9 +52,6 @@ export type DraftDocument = {
   /** [] is spellable but invalid; parse rejects it at the exit */
   readonly schedules: readonly DraftSchedule[];
 };
-// version is not part of the draft: the supported version is core's
-// SUPPORTED_VERSION constant, not something an editor edits. toYrnk
-// writes it out as that constant.
 
 /**
  * A built-in date-list position (holidays / business_holidays /

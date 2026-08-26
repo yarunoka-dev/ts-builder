@@ -5,7 +5,7 @@
 // off with an honest exhausted flag.
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { parse } from '@yarunoka/core';
+import { parse, YrnkError } from '@yarunoka/core';
 import { preview } from '../src/preview.ts';
 
 const AFTER = '2026-01-01T00:00:00+09:00';
@@ -38,6 +38,21 @@ describe('preview range', () => {
         ['2026-01-05', ['s-a', 's-b']],
         ['2026-01-06', ['s-b']],
       ],
+    );
+  });
+
+  it('lets a malformed-query error out of a reversed range', () => {
+    // core's query well-formedness rule: a reversed pair signals broken
+    // caller state, and the preview passes that judgment through
+    // rather than dressing it up as a draft problem.
+    const document = parsed([{ days: ['mon'], allday: true }]);
+
+    assert.throws(
+      () =>
+        preview(document, ['s1'], {
+          range: { from: '2026-01-06T00:00:00+09:00', through: '2026-01-05T00:00:00+09:00' },
+        }),
+      (error: unknown) => error instanceof YrnkError && error.code === 'malformed-query',
     );
   });
 

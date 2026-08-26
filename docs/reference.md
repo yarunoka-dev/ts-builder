@@ -264,6 +264,13 @@ type DraftDocument = {
   /** '' reads as "key omitted" */
   readonly label: string;
   readonly description: string;
+  /**
+   * The declared spec version the draft carries: the loaded document's
+   * own, or the latest supported version for a fresh draft. No op edits
+   * it — an editor edits the document, not its version; moving to the
+   * latest is the exit's decision (the builder's migrate option).
+   */
+  readonly version: string;
   /** Always written out: a document cannot omit its timezone */
   readonly timezone: string;
   /** [] reads as "key omitted" */
@@ -505,7 +512,14 @@ type YrnkBuilderOptions = {
   readonly initial?: YrnkDocument;
   /** What the host binds the draft's declared resolver names to */
   readonly resolvers?: Readonly<Record<string, YrnkResolver>>;
+  /**
+   * Export on the latest supported spec version instead of the version
+   * the loaded document declares (a fresh draft starts on the latest
+   * either way). Off by default: opening and saving a document does not
+   * change what version it declares unless the host asks for that.
+   */
+  readonly migrate?: boolean;
 };
 ```
 
-What createYrnkBuilder accepts: the starting document and the host's resolver bindings.
+What createYrnkBuilder accepts: the starting document, the host's resolver bindings, and whether exports migrate to the latest spec version.

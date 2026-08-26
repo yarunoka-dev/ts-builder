@@ -1,6 +1,6 @@
 {
   "name": "@yarunoka/builder",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Yarunoka schedule definition DSL — headless schedule editor foundation for TypeScript",
   "keywords": [
     "yarunoka",
@@ -41,12 +41,12 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@yarunoka/core": "^0.3.0"
+    "@yarunoka/core": "^0.4.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",
     "@types/node": "^26.2.0",
-    "@yarunoka/core": "^0.3.0",
+    "@yarunoka/core": "^0.4.0",
     "typescript": "^7.0.2"
   }
 }
