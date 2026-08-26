@@ -54,6 +54,13 @@ const DEFAULT_HORIZON = { years: 10 };
  * after `after`, doubling until it holds N occurrences or reaches the
  * horizon. `exhausted` says the horizon was reached first — an honest
  * "fewer than asked", never a silent one.
+ *
+ * A range whose from lies after through is a malformed query: core's
+ * occurrencesIn throws a YrnkError with the code 'malformed-query',
+ * and the preview lets it out. The range names the caller's question —
+ * a reversed one signals broken caller state, which core refuses to
+ * hide behind an empty answer, and this package refuses to dress up as
+ * a problem of the draft.
  */
 export function preview(
   document: YrnkDocument,
