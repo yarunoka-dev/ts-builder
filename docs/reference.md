@@ -522,4 +522,4 @@ type YrnkBuilderOptions = {
 };
 ```
 
-What createYrnkBuilder accepts: the starting document and the host's resolver bindings.
+What createYrnkBuilder accepts: the starting document, the host's resolver bindings, and whether exports migrate to the latest spec version.

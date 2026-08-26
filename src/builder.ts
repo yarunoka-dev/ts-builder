@@ -8,7 +8,11 @@ import { type OptionContext, type Options, optionsAt } from './options.ts';
 import { type PreviewOccurrence, type PreviewRequest, preview } from './preview.ts';
 import { type ToYrnkResult, toYrnk } from './to-yrnk.ts';
 
-/** What createYrnkBuilder accepts: the starting document and the host's resolver bindings. */
+/**
+ * What createYrnkBuilder accepts: the starting document, the host's
+ * resolver bindings, and whether exports migrate to the latest spec
+ * version.
+ */
 export type YrnkBuilderOptions = {
   /** The document to start editing; an empty new draft when omitted */
   readonly initial?: YrnkDocument;
